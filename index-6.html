@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BETMIND.GE — სპორტული AI ანალიტიკა</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --black: #0b0b0f;
+    --black2: #111117;
+    --black3: #18181f;
+    --deep-red: #7a0c0c;
+    --accent: #ff2e2e;
+    --accent-dim: rgba(255,46,46,0.12);
+    --accent-glow: rgba(255,46,46,0.35);
+    --white: #f0f0f0;
+    --grey: #6b6b7a;
+    --grey-light: #9898aa;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ───── NOISE OVERLAY ───── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* ───── HEADER ───── */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 64px;
+    background: rgba(11,11,15,0.85);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(255,46,46,0.1);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.75rem;
+    letter-spacing: 3px;
+    color: var(--white);
+    text-decoration: none;
+    position: relative;
+  }
+  .logo span { color: var(--accent); }
+
+  nav { display: flex; align-items: center; gap: 0.6rem; }
+
+  .nav-btn {
+    padding: 0.4rem 1.1rem;
+    border-radius: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    letter-spacing: 0.3px;
+  }
+  #btn-login {
+    background: transparent;
+    color: var(--grey-light);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  #btn-login:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+
+  #btn-register {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 18px var(--accent-glow);
+  }
+  #btn-register:hover { background: #e02020; box-shadow: 0 0 28px var(--accent-glow); }
+
+  #btn-logout {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid rgba(255,46,46,0.35);
+    display: none;
+  }
+  #btn-logout:hover { background: var(--accent-dim); }
+
+  #user-label {
+    font-size: 0.78rem;
+    color: var(--grey-light);
+    display: none;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ───── MAIN LAYOUT ───── */
+  main { padding-top: 64px; }
+
+  /* ───── HERO ───── */
+  .hero {
+    position: relative;
+    min-height: 340px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem 2rem;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 100%, rgba(122,12,12,0.45) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255,46,46,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    font-weight: 500;
+    opacity: 0;
+    animation: fadeUp 0.7s 0.2s forwards;
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.05;
+    letter-spacing: 2px;
+    opacity: 0;
+    animation: fadeUp 0.7s 0.4s forwards;
+  }
+  .hero h1 .red { color: var(--accent); }
+
+  .hero-sub {
+    margin-top: 1.2rem;
+    font-size: 0.95rem;
+    color: var(--grey-light);
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.7s 0.6s forwards;
+  }
+
+  /* ───── SECTION WRAPPER ───── */
+  .section { position: relative; z-index: 1; }
+
+  /* ───── AI CHAT ───── */
+  .chat-section {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 1.2rem 3rem;
+  }
+
+  .chat-card {
+    background: var(--black2);
+    border: 1px solid rgba(255,46,46,0.12);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+  }
+
+  .chat-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 1rem 1.4rem;
+    background: var(--black3);
+    border-bottom: 1px solid rgba(255,46,46,0.1);
+  }
+  .ai-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s infinite;
+  }
+  .chat-topbar-title { font-size: 0.85rem; font-weight: 600; letter-spacing: 0.5px; }
+  .chat-topbar-sub { font-size: 0.72rem; color: var(--grey); margin-left: auto; }
+
+  /* limit badge */
+  #limit-badge {
+    font-size: 0.72rem;
+    background: rgba(255,46,46,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(255,46,46,0.25);
+    border-radius: 20px;
+    padding: 0.2rem 0.7rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .chat-messages {
+    height: 420px;
+    overflow-y: auto;
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,46,46,0.2) transparent;
+  }
+
+  /* Auth blocker overlay */
+  .chat-blocker {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 420px;
+    gap: 1rem;
+  }
+  .chat-blocker .lock-icon {
+    font-size: 2.5rem;
+    filter: grayscale(1);
+    opacity: 0.5;
+  }
+  .chat-blocker p {
+    font-size: 1rem;
+    color: var(--grey-light);
+    font-weight: 400;
+  }
+  .chat-blocker .auth-hint {
+    font-size: 0.8rem;
+    color: var(--grey);
+  }
+
+  /* messages */
+  .msg {
+    display: flex;
+    gap: 0.65rem;
+    animation: msgIn 0.3s ease;
+    max-width: 80%;
+  }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.ai { align-self: flex-start; }
+
+  .msg-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .msg.ai .msg-avatar {
+    background: var(--deep-red);
+    border: 1px solid rgba(255,46,46,0.3);
+    color: #fff;
+  }
+  .msg.user .msg-avatar {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--grey-light);
+  }
+
+  .msg-bubble {
+    padding: 0.7rem 1rem;
+    border-radius: 14px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    font-weight: 400;
+  }
+  .msg.ai .msg-bubble {
+    background: var(--black3);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-top-left-radius: 4px;
+    color: var(--white);
+  }
+  .msg.user .msg-bubble {
+    background: var(--deep-red);
+    border: 1px solid rgba(255,46,46,0.3);
+    border-top-right-radius: 4px;
+    color: #fff;
+  }
+
+  /* typing indicator */
+  .typing-indicator {
+    display: none;
+    align-self: flex-start;
+    align-items: center;
+    gap: 0.65rem;
+    animation: msgIn 0.3s ease;
+  }
+  .typing-indicator.active { display: flex; }
+  .typing-dots {
+    display: flex;
+    gap: 4px;
+    padding: 0.7rem 1rem;
+    background: var(--black3);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    border-top-left-radius: 4px;
+  }
+  .typing-dots span {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: dot-bounce 1.3s infinite;
+    opacity: 0.6;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  /* input bar */
+  .chat-input-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.2rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: var(--black3);
+  }
+
+  #chat-input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 0.65rem 1rem;
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #chat-input::placeholder { color: var(--grey); }
+  #chat-input:focus { border-color: rgba(255,46,46,0.4); }
+  #chat-input:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  #send-btn {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0 0 14px var(--accent-glow);
+  }
+  #send-btn:hover { background: #e02020; transform: scale(1.05); }
+  #send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  #send-btn svg { width: 18px; height: 18px; fill: #fff; }
+
+  /* ───── TOAST ───── */
+  #toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--black3);
+    border: 1px solid rgba(255,46,46,0.3);
+    color: var(--white);
+    padding: 0.7rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    z-index: 999;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ───── MODAL ───── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--black2);
+    border: 1px solid rgba(255,46,46,0.18);
+    border-radius: 18px;
+    padding: 2.2rem;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .modal h2 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    margin-bottom: 1.6rem;
+  }
+  .modal h2 span { color: var(--accent); }
+
+  .modal-field {
+    margin-bottom: 1rem;
+  }
+  .modal-field label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--grey-light);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .modal-field input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 0.65rem 1rem;
+    color: var(--white);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal-field input:focus { border-color: rgba(255,46,46,0.5); }
+
+  .modal-submit {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.4rem;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .modal-submit:hover { background: #e02020; }
+
+  .modal-error {
+    font-size: 0.78rem;
+    color: var(--accent);
+    margin-top: 0.7rem;
+    min-height: 18px;
+    text-align: center;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem; right: 1.2rem;
+    background: none;
+    border: none;
+    color: var(--grey);
+    font-size: 1.3rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--white); }
+  .modal { position: relative; }
+
+  /* ───── ABOUT ───── */
+  .about-section {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 1rem 1.2rem 5rem;
+  }
+
+  .about-card {
+    background: var(--black2);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 2.2rem;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .about-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 10px var(--accent-glow));
+  }
+
+  .about-text p {
+    font-size: 0.9rem;
+    color: var(--grey-light);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .about-text strong { color: var(--white); font-weight: 600; }
+
+  /* ───── FOOTER ───── */
+  footer {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 1.4rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--grey);
+  }
+  footer .logo-small {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    color: var(--grey-light);
+  }
+  footer .logo-small span { color: var(--accent); }
+
+  /* ───── ANIMATIONS ───── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--accent); }
+    50%       { opacity: 0.5; box-shadow: 0 0 3px var(--accent); }
+  }
+  @keyframes dot-bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50%       { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ───── RESPONSIVE ───── */
+  @media (max-width: 600px) {
+    header { padding: 0 1rem; }
+    .logo { font-size: 1.4rem; }
+    .nav-btn { padding: 0.35rem 0.75rem; font-size: 0.78rem; }
+    .hero h1 { font-size: clamp(2.2rem, 10vw, 3.5rem); }
+    .chat-messages { height: 340px; }
+    .about-card { flex-direction: column; gap: 1rem; }
+    .msg { max-width: 90%; }
+    footer { flex-direction: column; gap: 0.4rem; }
+    #limit-badge { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <a class="logo" href="#">BET<span>MIND</span>.GE</a>
+  <nav>
+    <span id="user-label"></span>
+    <button class="nav-btn" id="btn-login">შესვლა</button>
+    <button class="nav-btn" id="btn-register">რეგისტრაცია</button>
+    <button class="nav-btn" id="btn-logout">გამოსვლა</button>
+  </nav>
+</header>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <!-- HERO -->
+  <section class="hero section">
+    <div class="hero-bg"></div>
+    <p class="hero-eyebrow">AI-ზე დაფუძნებული ბუქმეიქერული ანალიტიკა</p>
+    <h1>ფეხბურთი.<br/><span class="red">მონაცემები.</span><br/>გადაწყვეტილებები.</h1>
+    <p class="hero-sub">სპორტული პროგნოზები AI-ის დახმარებით — ბჭეობა მონაცემებით, არა შემთხვევით.</p>
+  </section>
+
+  <!-- CHAT -->
+  <section class="chat-section section">
+    <div class="chat-card">
+
+      <!-- top bar -->
+      <div class="chat-topbar">
+        <div class="ai-dot"></div>
+        <span class="chat-topbar-title">BetMind AI</span>
+        <span id="limit-badge">10/10 კითხვა</span>
+        <span class="chat-topbar-sub" id="typing-status"></span>
+      </div>
+
+      <!-- BLOCKER (shown when logged out) -->
+      <div class="chat-blocker" id="chat-blocker">
+        <div class="lock-icon">🔒</div>
+        <p>გაიარე ავტორიზაცია</p>
+        <span class="auth-hint">AI-ის გამოსაყენებლად შედი ან დარეგისტრირდი</span>
+      </div>
+
+      <!-- MESSAGES -->
+      <div class="chat-messages" id="chat-messages" style="display:none;">
+        <!-- welcome msg injected by JS -->
+      </div>
+
+      <!-- typing indicator -->
+      <div class="typing-indicator" id="typing-indicator" style="display:none; padding: 0 1.4rem 0.5rem;">
+        <div class="msg-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--deep-red);border:1px solid rgba(255,46,46,0.3);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0;">AI</div>
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+      </div>
+
+      <!-- input -->
+      <div class="chat-input-bar">
+        <input type="text" id="chat-input" placeholder="დასვი სპორტული კითხვა..." disabled/>
+        <button id="send-btn" disabled>
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about-section section">
+    <div class="about-card">
+      <div class="about-icon">⚡</div>
+      <div class="about-text">
+        <p>
+          <strong>BETMIND.GE</strong> — ჩვენი პლატფორმა არის საქართველოში პირველი სპორტული ბუქმეიქერული AI, რომელიც რეალურ მონაცემებზე დაყრდნობით გთავაზობთ ანალიზს.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <span class="logo-small">BET<span>MIND</span>.GE</span>
+  <span>© 2026 — ყველა უფლება დაცულია</span>
+</footer>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="modal-login">
+  <div class="modal">
+    <button class="modal-close" id="close-login">✕</button>
+    <h2>შე<span>სვლა</span></h2>
+    <div class="modal-field">
+      <label>ელ. ფოსტა</label>
+      <input type="email" id="login-email" placeholder="you@example.com"/>
+    </div>
+    <div class="modal-field">
+      <label>პაროლი</label>
+      <input type="password" id="login-pass" placeholder="••••••••"/>
+    </div>
+    <button class="modal-submit" id="login-submit">შესვლა</button>
+    <div class="modal-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- REGISTER MODAL -->
+<div class="modal-overlay" id="modal-register">
+  <div class="modal">
+    <button class="modal-close" id="close-register">✕</button>
+    <h2>რეგის<span>ტრაცია</span></h2>
+    <div class="modal-field">
+      <label>ელ. ფოსტა</label>
+      <input type="email" id="reg-email" placeholder="you@example.com"/>
+    </div>
+    <div class="modal-field">
+      <label>პაროლი</label>
+      <input type="password" id="reg-pass" placeholder="მინ. 6 სიმბოლო"/>
+    </div>
+    <button class="modal-submit" id="reg-submit">რეგისტრაცია</button>
+    <div class="modal-error" id="reg-error"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FIREBASE (module type)
+══════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword,
+           signInWithEmailAndPassword, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  /* ── Firebase Config ── */
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBzeH9cuCf0MGDyDiMwMPDyvIgjxhykpT8",
+    authDomain:        "betmind-788c8.firebaseapp.com",
+    projectId:         "betmind-788c8",
+    storageBucket:     "betmind-788c8.firebasestorage.app",
+    messagingSenderId: "488494749730",
+    appId:             "1:488494749730:web:d498cdccec412572dcd27b",
+    measurementId:     "G-RTCCGZNNRP"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  /* ── Gemini API Key ── */
+  const GEMINI_KEY = "AIzaSyA9Ke4ksEjd8bICn93ZvcgSgYWCGXLBle0";
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+
+  /* ── Daily Limit Helpers ── */
+  const LIMIT_MAX = 10;
+  function getLimitKey(uid) { return `bm_limit_${uid}`; }
+
+  function getLimitData(uid) {
+    try {
+      const raw = localStorage.getItem(getLimitKey(uid));
+      if (!raw) return { count: 0, ts: Date.now() };
+      return JSON.parse(raw);
+    } catch { return { count: 0, ts: Date.now() }; }
+  }
+
+  function getRemainingQuestions(uid) {
+    const d = getLimitData(uid);
+    const elapsed = Date.now() - d.ts;
+    if (elapsed >= 24 * 60 * 60 * 1000) return LIMIT_MAX; // reset
+    return Math.max(0, LIMIT_MAX - d.count);
+  }
+
+  function incrementLimit(uid) {
+    const d = getLimitData(uid);
+    const elapsed = Date.now() - d.ts;
+    if (elapsed >= 24 * 60 * 60 * 1000) {
+      localStorage.setItem(getLimitKey(uid), JSON.stringify({ count: 1, ts: Date.now() }));
+    } else {
+      localStorage.setItem(getLimitKey(uid), JSON.stringify({ count: d.count + 1, ts: d.ts }));
+    }
+  }
+
+  /* ── DOM References ── */
+  const btnLogin    = document.getElementById('btn-login');
+  const btnRegister = document.getElementById('btn-register');
+  const btnLogout   = document.getElementById('btn-logout');
+  const userLabel   = document.getElementById('user-label');
+
+  const modalLogin    = document.getElementById('modal-login');
+  const modalRegister = document.getElementById('modal-register');
+
+  const chatBlocker  = document.getElementById('chat-blocker');
+  const chatMessages = document.getElementById('chat-messages');
+  const typingInd    = document.getElementById('typing-indicator');
+  const chatInput    = document.getElementById('chat-input');
+  const sendBtn      = document.getElementById('send-btn');
+  const limitBadge   = document.getElementById('limit-badge');
+  const typingStatus = document.getElementById('typing-status');
+  const toast        = document.getElementById('toast');
+
+  let currentUser = null;
+
+  /* ── Toast ── */
+  function showToast(msg, duration = 3000) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), duration);
+  }
+
+  /* ── UI: Auth State ── */
+  function setLoggedIn(user) {
+    currentUser = user;
+    btnLogin.style.display    = 'none';
+    btnRegister.style.display = 'none';
+    btnLogout.style.display   = 'inline-flex';
+    userLabel.style.display   = 'block';
+    userLabel.textContent     = user.email;
+
+    chatBlocker.style.display  = 'none';
+    chatMessages.style.display = 'flex';
+    chatInput.disabled  = false;
+    sendBtn.disabled    = false;
+    chatInput.focus();
+    updateLimitBadge(user.uid);
+
+    if (chatMessages.children.length === 0) {
+      addAIMessage("გამარჯობა! 👋 მე ვარ BetMind AI. დამისვი ნებისმიერი სპორტული კითხვა — ფეხბურთი, კალათბურთი, ტენისი და სხვა.");
+    }
+  }
+
+  function setLoggedOut() {
+    currentUser = null;
+    btnLogin.style.display    = 'inline-flex';
+    btnRegister.style.display = 'inline-flex';
+    btnLogout.style.display   = 'none';
+    userLabel.style.display   = 'none';
+    userLabel.textContent     = '';
+
+    chatBlocker.style.display  = 'flex';
+    chatMessages.style.display = 'none';
+    typingInd.style.display    = 'none';
+    chatInput.disabled  = true;
+    sendBtn.disabled    = true;
+    limitBadge.textContent = '';
+  }
+
+  function updateLimitBadge(uid) {
+    const rem = getRemainingQuestions(uid);
+    limitBadge.textContent = `${rem}/${LIMIT_MAX} კითხვა`;
+    limitBadge.style.color = rem <= 2 ? 'var(--accent)' : '';
+  }
+
+  /* ── Auth State Listener ── */
+  onAuthStateChanged(auth, user => {
+    if (user) setLoggedIn(user);
+    else setLoggedOut();
+  });
+
+  /* ── Modals ── */
+  btnLogin.addEventListener('click', () => {
+    modalLogin.classList.add('active');
+    document.getElementById('login-error').textContent = '';
+  });
+  btnRegister.addEventListener('click', () => {
+    modalRegister.classList.add('active');
+    document.getElementById('reg-error').textContent = '';
+  });
+  document.getElementById('close-login').addEventListener('click', () => {
+    modalLogin.classList.remove('active');
+  });
+  document.getElementById('close-register').addEventListener('click', () => {
+    modalRegister.classList.remove('active');
+  });
+  modalLogin.addEventListener('click', e => { if (e.target === modalLogin) modalLogin.classList.remove('active'); });
+  modalRegister.addEventListener('click', e => { if (e.target === modalRegister) modalRegister.classList.remove('active'); });
+
+  /* ── Login Submit ── */
+  document.getElementById('login-submit').addEventListener('click', async () => {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+    if (!email || !pass) { errEl.textContent = 'შეავსე ყველა ველი'; return; }
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      modalLogin.classList.remove('active');
+      showToast('✅ წარმატებით შეხვედი');
+    } catch (e) {
+      const map = {
+        'auth/user-not-found':  'მომხმარებელი ვერ მოიძებნა',
+        'auth/wrong-password':  'პაროლი არასწორია',
+        'auth/invalid-email':   'ელ. ფოსტა არასწორია',
+        'auth/invalid-credential': 'ელ. ფოსტა ან პაროლი არასწორია',
+      };
+      errEl.textContent = map[e.code] || 'შეცდომა: ' + e.message;
+    }
+  });
+
+  /* ── Register Submit ── */
+  document.getElementById('reg-submit').addEventListener('click', async () => {
+    const email = document.getElementById('reg-email').value.trim();
+    const pass  = document.getElementById('reg-pass').value;
+    const errEl = document.getElementById('reg-error');
+    errEl.textContent = '';
+    if (!email || !pass) { errEl.textContent = 'შეავსე ყველა ველი'; return; }
+    if (pass.length < 6) { errEl.textContent = 'პაროლი მინ. 6 სიმბოლო'; return; }
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+      modalRegister.classList.remove('active');
+      showToast('🎉 რეგისტრაცია წარმატებულია!');
+    } catch (e) {
+      const map = {
+        'auth/email-already-in-use': 'ეს ელ. ფოსტა უკვე გამოყენებულია',
+        'auth/invalid-email': 'ელ. ფოსტა არასწორია',
+        'auth/weak-password': 'პაროლი ძალიან სუსტია',
+      };
+      errEl.textContent = map[e.code] || 'შეცდომა: ' + e.message;
+    }
+  });
+
+  /* ── Enter in inputs ── */
+  document.getElementById('login-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('login-submit').click();
+  });
+  document.getElementById('reg-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('reg-submit').click();
+  });
+
+  /* ── Logout ── */
+  btnLogout.addEventListener('click', async () => {
+    await signOut(auth);
+    showToast('გამოხვედი სისტემიდან');
+  });
+
+  /* ── Chat: add messages ── */
+  function addUserMessage(text) {
+    const d = document.createElement('div');
+    d.className = 'msg user';
+    d.innerHTML = `
+      <div class="msg-avatar">შ</div>
+      <div class="msg-bubble">${escapeHTML(text)}</div>`;
+    chatMessages.appendChild(d);
+    scrollChat();
+  }
+
+  function addAIMessage(text) {
+    const d = document.createElement('div');
+    d.className = 'msg ai';
+    d.innerHTML = `
+      <div class="msg-avatar">AI</div>
+      <div class="msg-bubble">${escapeHTML(text)}</div>`;
+    chatMessages.appendChild(d);
+    scrollChat();
+  }
+
+  function escapeHTML(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>');
+  }
+
+  function scrollChat() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function setTyping(on) {
+    typingInd.style.display = on ? 'flex' : 'none';
+    typingStatus.textContent = on ? 'AI წერს...' : '';
+    if (on) scrollChat();
+  }
+
+  /* ── Send Message ── */
+  async function sendMessage() {
+    if (!currentUser) return;
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    // Check limit
+    const remaining = getRemainingQuestions(currentUser.uid);
+    if (remaining <= 0) {
+      addAIMessage('დღიური ლიმიტი ამოწურულია');
+      showToast('⛔ დღიური ლიმიტი ამოწურულია');
+      return;
+    }
+
+    chatInput.value = '';
+    chatInput.disabled = true;
+    sendBtn.disabled = true;
+    addUserMessage(text);
+    setTyping(true);
+    incrementLimit(currentUser.uid);
+    updateLimitBadge(currentUser.uid);
+
+    try {
+      const body = {
+        // systemInstruction must be SEPARATE from contents — Gemini API rule
+        systemInstruction: {
+          parts: [{
+            text: `You are a professional sports bookmaker AI assistant called BetMind.
+You ONLY answer questions about sports (football, basketball, tennis, volleyball, hockey, MMA, cricket, rugby, etc.).
+You provide analysis, predictions, statistics, and betting insights in a professional tone.
+You respond in the same language the user writes in — if Georgian, respond in Georgian; if English, respond in English.
+IMPORTANT: If the question is NOT about sports, you MUST respond with ONLY this exact Georgian sentence and nothing else:
+მე მხოლოდ სპორტთან დაკავშირებულ კითხვებზე ვპასუხობ`
+          }]
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: text }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.75,
+          maxOutputTokens: 900,
+        }
+      };
+
+      console.log('[BetMind] Sending to Gemini:', GEMINI_URL);
+
+      const res = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      // Read body text first so we can log it on error
+      const rawText = await res.text();
+
+      if (!res.ok) {
+        console.error('[BetMind] Gemini HTTP error', res.status, rawText);
+        let msg = `HTTP ${res.status}`;
+        try { msg = JSON.parse(rawText)?.error?.message || msg; } catch {}
+        throw new Error(msg);
+      }
+
+      const data = JSON.parse(rawText);
+      console.log('[BetMind] Gemini response:', data);
+
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!reply) {
+        console.error('[BetMind] No reply text in response:', data);
+        throw new Error('Empty response from AI');
+      }
+
+      setTyping(false);
+      addAIMessage(reply.trim());
+
+    } catch (err) {
+      setTyping(false);
+      addAIMessage('შეცდომა: ' + err.message);
+      console.error('[BetMind] sendMessage error:', err);
+    } finally {
+      chatInput.disabled = false;
+      sendBtn.disabled = false;
+      chatInput.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+</script>
+</body>
+</html>
